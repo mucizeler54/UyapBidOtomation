@@ -69,13 +69,16 @@ def muhammelBedeli():
     
     
 def confirm():
-    currTime('BEKLEMEDEN ÖNCE')
-    btn= WebDriverWait(driver, 3, ignored_exceptions=(StaleElementReferenceException,)).until(EC.element_to_be_clickable((By.XPATH, '//button[@data-bb-handler="confirm"]')))
-    btn.click()
-    currTime('BEKLEMEDEN SORNA')
-    second = wait_for_element(driver, By.ID, 'second', timeout)
-    print('DONE',second.text)
-    currTime('SON')
+    try:
+        currTime('BEKLEMEDEN ÖNCE')
+        btn= WebDriverWait(driver, 3, ignored_exceptions=(StaleElementReferenceException,)).until(EC.element_to_be_clickable((By.XPATH, '//button[@data-bb-handler="confirm"]')))
+        btn.click()
+        currTime('BEKLEMEDEN SORNA')
+        second = wait_for_element(driver, By.ID, 'second', timeout)
+        print('DONE',second.text)
+        currTime('SON')
+    except:
+        print("ERROR ON confirm")
     
 def accept(second,myOffer,lastPrice):
     #myOfferN=int(myOffer.text.split(',')[0].replace(".",""))
@@ -104,20 +107,17 @@ driver = webdriver.Chrome()
 url='https://esatis.uyap.gov.tr/main/esatis/index.jsp'
 buyUrl='https://esatis.uyap.gov.tr/main/jsp/esatis/index.jsp?menuId=21772&kayitId=12427572463'
 def counter():
-    flag=False
+    currentMillis_value = driver.execute_script('return currentMillis;')
+    clock =int(currentMillis_value/1000)
+    day=int(clock/86400)
+    hour=int((clock%86400)/3600)
+    minute=int((clock%3600)/60)
+    second=int(clock%60)
+    micro = currentMillis_value%1000
+    #print("GUN: ",day," HOUR: ", hour, " Minute: ",minute, " second: ",second,"Micro: ",micro)
+    #print('milli:  ',currentMillis_value)
+    return day,hour,minute,second,micro
     
-    while True:
-        currentMillis_value = driver.execute_script('return currentMillis;')
-        clock =int(currentMillis_value/1000)
-        day=int(clock/86400)
-        hour=int((clock%86400)/3600)
-        minute=int((clock%3600)/60)
-        second=int(clock%60)
-        micro = currentMillis_value%1000
-        flag=True
-        #print("GUN: ",day," HOUR: ", hour, " Minute: ",minute, " second: ",second,"Micro: ",micro)
-        #print('milli:  ',currentMillis_value)
-        return day,hour,minute,second,micro
 def runCode():
     id=buyUrl[-11:]
     print(id)
@@ -187,28 +187,34 @@ def runCode():
                     if not muhammelFlag:
                         muhammelBedeli()
                         muhammelFlag=True
+                        time.sleep(0.1)
                 #if int(myOffer.text.split(',')[0].replace(".",""))<int(lastPrice.text.split(',')[0].replace(".","")):
                 if int('20000'.replace(".",""))<int(lastPrice.text.split(',')[0].replace(".","")):#BURAYA DİKKAT LAST PRİCE KOYULCAK ŞİMDİLİK SAYI VAR
                     try:
                         currentTeklif= driver.find_element(By.ID, 'teklifMiktari')
-                        if currentTeklif.text ==''and int(lastPrice.text.split(',')[0].replace(".",""))+int(minArt.text.split(',')[0].replace(".",""))<maxTeklif:
+                        x=0
+                        while x<2:
                             plusBtn.click()
-                        elif currentTeklif.text !='' and int(currentTeklif.text)+minArt<maxTeklif:
-                            plusBtn.click()
+                            x+=1
+                        """
                         currentTeklif= driver.find_element(By.ID, 'teklifMiktari')
-                        if currentTeklif.text !='' and int(currentTeklif.text)+minArt<maxTeklif:
-                            plusBtn.click()
-                        
+                        if int(currentTeklif.text.split(',')[0].replace(".",""))<maxTeklif:
+                            pass
+                        else:
+                            currentTeklif.send_keys(maxTeklif)
+                         """   
                     except ElementClickInterceptedException:
                         print('plusa basmadı')
                         pass
                     try:
-                        driver.find_element(By.XPATH,'//a[@class="btn btn-lg esatis-green"]').click()
+                        #driver.find_element(By.XPATH,'//a[@class="btn btn-lg esatis-green"]').click()
+                        driver.execute_script("IlanDetayi.teklifEkle();")
                         flag=True
                     except ElementClickInterceptedException:
                         pass
                     if flag:
-                        confirm()
+                        button_class = 'btn btn-primary'
+                        driver.execute_script(f'document.getElementsByClassName("{button_class}")[0].click();')
                         currTime('SON')
                         break
                     continue
