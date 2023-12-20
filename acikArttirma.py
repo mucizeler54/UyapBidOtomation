@@ -84,7 +84,7 @@ def accept(second,myOffer,lastPrice):
     boolean=int(second.text)<3 and int(second.text)>0 and lastPriceN<=maxTeklif
     now = datetime.datetime.now()
     totalMicro=now.second*1000+int(now.microsecond/1000)
-    while boolean and totalMicro <59000:
+    while boolean and totalMicro <57000:
         time.sleep(0.01)
         now = datetime.datetime.now()
         totalMicro=now.second*1000+int(now.microsecond/1000) 
