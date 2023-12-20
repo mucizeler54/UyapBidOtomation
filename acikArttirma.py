@@ -19,7 +19,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 
-maxTeklif=23300
+maxTeklif=36000
 def wait_for_element(driver,by, value, timeout):
     try:
         return WebDriverWait(driver, timeout, ignored_exceptions=(StaleElementReferenceException,)).until(EC.presence_of_element_located((by, value)))
@@ -86,7 +86,7 @@ def accept(second,myOffer,lastPrice):
     boolean=int(second.text)<3 and int(second.text)>0 and myOfferN <lastPriceN
     now = datetime.datetime.now()
     totalMicro=now.second*1000+int(now.microsecond/1000)
-    while boolean and totalMicro <59000:
+    while boolean and totalMicro <57000:
         time.sleep(0.01)
         now = datetime.datetime.now()
         totalMicro=now.second*1000+int(now.microsecond/1000) 
@@ -104,7 +104,7 @@ def accept2(baslangic,micro,myOffer,lastPrice):
 timeout=180  
 driver = webdriver.Chrome()
 url='https://esatis.uyap.gov.tr/main/esatis/index.jsp'
-buyUrl='https://esatis.uyap.gov.tr/main/jsp/esatis/index.jsp?menuId=21772&kayitId=12427572463'
+buyUrl='https://esatis.uyap.gov.tr/main/jsp/esatis/index.jsp?menuId=21772&kayitId=12474644398'
 def counter():
     currentMillis_value = driver.execute_script('return currentMillis;')
     clock =int(currentMillis_value/1000)
@@ -177,7 +177,7 @@ def runCode():
         print("Teklif: ",lastPrice.text," Benim Teklif: ",myOffer.text, " Gün: ", day.text, " Saat: ", hour.text, " Dakika: ", minute.text, " Saniye: ", second.text)
         if second and day and minute and hour:
             currTime('Teklif')
-            while accept(second,myOffer,lastPrice):
+            while int(day.text)==1 and int(hour.text)==17 and int(minute.text) ==42 and accept(second,myOffer,lastPrice):
                 currTime('ilk')
                 last = int(lastPrice.text.split(',')[0].replace(".",""))
                 muham= int(muhammelBedel.text.split(',')[0].replace(".","").replace(":",""))
@@ -210,12 +210,19 @@ def runCode():
                         flag=True
                     except ElementClickInterceptedException:
                         pass
-                    if flag:
-                        button_class = 'btn btn-primary'
-                        driver.execute_script(f'document.getElementsByClassName("{button_class}")[0].click();')
-                        currTime('SON')
-                        break
-                    continue
+                    try:
+                        if flag:
+                            button_class = 'btn btn-primary'
+                            currTime('Ara')
+                            driver.execute_script(f'document.getElementsByClassName("{button_class}")[0].click();')
+                            currTime('SON')
+                            
+                        continue
+                    except:
+                        if flag:
+                            confirm()
+                            currTime('SON')
+                            
                 
         else:
             print('hata')
