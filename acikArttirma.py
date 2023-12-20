@@ -19,7 +19,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 
-maxTeklif=21000
+maxTeklif=36000
 def wait_for_element(driver,by, value, timeout):
     try:
         return WebDriverWait(driver, timeout, ignored_exceptions=(StaleElementReferenceException,)).until(EC.presence_of_element_located((by, value)))
@@ -70,21 +70,18 @@ def muhammelBedeli():
     
 def confirm():
     try:
-        currTime('BEKLEMEDEN ÖNCE')
         btn= WebDriverWait(driver, 3, ignored_exceptions=(StaleElementReferenceException,)).until(EC.element_to_be_clickable((By.XPATH, '//button[@data-bb-handler="confirm"]')))
         btn.click()
-        currTime('BEKLEMEDEN SORNA')
         second = wait_for_element(driver, By.ID, 'second', timeout)
         print('DONE',second.text)
-        currTime('SON')
     except:
         print("ERROR ON confirm")
+        pass
     
 def accept(second,myOffer,lastPrice):
-    #myOfferN=int(myOffer.text.split(',')[0].replace(".",""))
-    myOfferN=20000
+    myOfferN=int(myOffer.text.split(',')[0].replace(".",""))
     lastPriceN=int(lastPrice.text.split(',')[0].replace(".",""))
-    boolean=int(second.text)<3 and int(second.text)>0 and myOfferN <lastPriceN
+    boolean=int(second.text)<3 and int(second.text)>0 and lastPriceN<=maxTeklif
     now = datetime.datetime.now()
     totalMicro=now.second*1000+int(now.microsecond/1000)
     while boolean and totalMicro <59000:
@@ -105,7 +102,7 @@ def accept2(baslangic,micro,myOffer,lastPrice):
 timeout=180  
 driver = webdriver.Chrome()
 url='https://esatis.uyap.gov.tr/main/esatis/index.jsp'
-buyUrl='https://esatis.uyap.gov.tr/main/jsp/esatis/index.jsp?menuId=21772&kayitId=12427572463'
+buyUrl='https://esatis.uyap.gov.tr/main/jsp/esatis/index.jsp?menuId=21772&kayitId=12474644398'
 def counter():
     currentMillis_value = driver.execute_script('return currentMillis;')
     clock =int(currentMillis_value/1000)
@@ -138,9 +135,9 @@ def runCode():
         
     try:
         element=WebDriverWait(driver, timeout).until(EC.visibility_of_element_located((By.XPATH,'//ul[@class="product-info-list"]')))
-        print('iland  fiyatları')
+        print('ilan  fiyatları')
     except:
-        print('kudurma')
+        print('ERROR! Code 142')
         
 
     zaman=wait_for_element(driver, By.XPATH, '//div[@id="kalanSureAck"]', 45)
@@ -154,9 +151,8 @@ def runCode():
         currTime('MICRO BEKLEEM ÖNCE')
         time.sleep((1000-micro1)/1000)
         currTime('MICRO BEKLEEM SONRA')
-        print("KADAR BEKLENDİ", (1000-micro1)/1000)
     except TypeError:
-        print('Type Error')
+        print('Type Error Code 158')
         pass
     
     day =wait_for_element(driver, By.ID, 'day', timeout)
@@ -169,55 +165,118 @@ def runCode():
     myOffer =wait_for_element(driver, By.ID, 'kullaniciMaxTeklifDiv', timeout)#HATAAAA! BENIM SON TEKLİFİM OLMALI
     muhammelBedel =wait_for_element(driver, By.ID, 'muhammenBedeli', timeout)
     muhammelFlag=False
-    while(True):
+    endFlag=False
+    while(not endFlag):
         bas=currTime2()
         minArt=driver.find_element(By.ID, 'minArtir')
         fiyatGir= driver.find_element(By.XPATH,'//input[@type="text"][@placeholder="Teklif Miktarı"]')
         button = driver.find_element(By.XPATH, '//a[@class="btn btn-lg esatis-green" and @onclick="IlanDetayi.teklifEkle();"]')
         #driver.execute_script("return document.getElementById('kullaniciMaxTeklifDiv').innerText;")
         print("Teklif: ",lastPrice.text," Benim Teklif: ",myOffer.text, " Gün: ", day.text, " Saat: ", hour.text, " Dakika: ", minute.text, " Saniye: ", second.text)
-        if second and day and minute and hour:
+        
+        if not endFlag and (second and day and minute and hour):
             currTime('Teklif')
-            while accept(second,myOffer,lastPrice):
+            while int(day.text)==1 and int(hour.text)==17 and int(minute.text) ==42 and accept(second,myOffer,lastPrice):
                 currTime('ilk')
+                flg=False
+                print('İLK SEC',second.text)
                 last = int(lastPrice.text.split(',')[0].replace(".",""))
                 muham= int(muhammelBedel.text.split(',')[0].replace(".","").replace(":",""))
                 flag=False
-                if muham<last+muham/1000 or muham<last+100:
-                    if not muhammelFlag:
-                        muhammelBedeli()
-                        muhammelFlag=True
-                        time.sleep(0.1)
+                if not muhammelFlag and (muham<last+muham/1000 or muham<last+100):
+                    muhammelBedeli()
+                    muhammelFlag=True
+                    
                 #if int(myOffer.text.split(',')[0].replace(".",""))<int(lastPrice.text.split(',')[0].replace(".","")):
-                if int('20000'.replace(".",""))<int(lastPrice.text.split(',')[0].replace(".","")):#BURAYA DİKKAT LAST PRİCE KOYULCAK ŞİMDİLİK SAYI VAR
+                if True:#BURAYA DİKKAT LAST PRİCE KOYULCAK ŞİMDİLİK SAYI VAR
+                    try:
+                        if(driver.find_element(By.ID,'popup_content').is_enabled()):
+                            driver.find_element(By.ID,'popup_ok').click()
+                    except:
+                        print('198')
+                        pass
                     try:
                         currentTeklif= driver.find_element(By.ID, 'teklifMiktari')
+                        currentTeklif.clear()
                         x=0
-                        while x<2:
+                        
+                        """
+                        if currentTeklif.get_attribute('value')=='':
+                            plusBtn.click()
+                        currentTeklif= driver.find_element(By.ID, 'teklifMiktari')
+                        if currentTeklif.get_attribute('value')!='' and int(currentTeklif.get_attribute('value').split(',')[0].replace(".",""))>maxTeklif:
+                            currentTeklif.clear()
+                            break
+                        elif int(second.text)==1:
+                            plusBtn.click()
+                            currentTeklif= driver.find_element(By.ID, 'teklifMiktari')
+                            print('VAL:' ,currentTeklif.get_attribute('value'))
+                            while  int(currentTeklif.get_attribute('value').split(',')[0].replace(".",""))+int(plusBtn.text.split(',')[0].replace(".",""))<=maxTeklif:
+                                plusBtn.click()
+                                x+=1
+                        else:
+                            plusBtn.click()
+                            
+                        """   
+                        while not endFlag and x<3:
                             plusBtn.click()
                             x+=1
-                        """
-                        currentTeklif= driver.find_element(By.ID, 'teklifMiktari')
-                        if int(currentTeklif.text.split(',')[0].replace(".",""))<maxTeklif:
-                            pass
-                        else:
-                            currentTeklif.send_keys(maxTeklif)
-                         """   
-                    except ElementClickInterceptedException:
-                        print('plusa basmadı')
+                            if currentTeklif.get_attribute('value')!='' and int(currentTeklif.get_attribute('value').split(',')[0].replace(".",""))+int(plusBtn.text.split(',')[0].replace(".",""))>=maxTeklif:
+                                endFlag=True
+                                break
+                            else:
+                                print('ERROR Code 222')
+
+
+
+                            
+                        
+                    except:
+                        print('Error Code 228')#Plus'a Basmadı
+                        currentTeklif.clear()
+                        flg=True
                         pass
+                    try:
+                        time.sleep(0.1)
+                        if(driver.find_element(By.ID,'popup_content').is_enabled()):
+                            driver.find_element(By.ID,'popup_ok').click()
+                            print('Error Code 231')
+                        if not endFlag:
+                            currentTeklif.clear()
+                            x=0
+                            while not endFlag and x<5:
+                                plusBtn.click()
+                                x+=1
+                                if currentTeklif.get_attribute('value')!='' and int(currentTeklif.get_attribute('value').split(',')[0].replace(".",""))+int(plusBtn.text.split(',')[0].replace(".",""))>=maxTeklif:
+                                    endFlag=True
+                                    break
+                                else:
+                                    print('ERROR Code 253')
+                    except:
+                        print('256')
+                        pass
+                        
+                            
                     try:
                         #driver.find_element(By.XPATH,'//a[@class="btn btn-lg esatis-green"]').click()
                         driver.execute_script("IlanDetayi.teklifEkle();")
                         flag=True
                     except ElementClickInterceptedException:
+                        print('Error Code 267')
                         pass
-                    if flag:
-                        button_class = 'btn btn-primary'
-                        driver.execute_script(f'document.getElementsByClassName("{button_class}")[0].click();')
-                        currTime('SON')
-                        break
-                    continue
+                    try:
+                        if flag:
+                            button_class = 'btn btn-primary'
+                            currTime('Ara')
+                            driver.execute_script(f'document.getElementsByClassName("{button_class}")[0].click();')
+                            currTime('SON')
+                            
+                        continue
+                    except:
+                        if flag:
+                            confirm()
+                            currTime('SON')
+                            
                 
         else:
             print('hata')
@@ -254,13 +313,13 @@ def deneme(url):
         element=WebDriverWait(driver, timeout).until(EC.visibility_of_element_located((By.XPATH,'//div[@id="anaSayfaSorguContainer"]')))
         print(driver.current_url)
     except TimeoutException:
-        print('Belirlenen Sürede Giriş Yapılamadı veya Ana sayfaya girelemedi! Lütfen Tekrar Başlatın')
+        print('Belirlenen Sürede Giriş Yapılamadı veya Ana sayfaya girelemedi! Lütfen Tekrar Başlatın Error Code 286')
 
     try:
         driver.get(buyUrl)
         print('İlan Tespiti Başarılı')
     except TimeoutException:
-        print('Belirlenen Sürede İlan Sayfasına Ulaşılamadı lütfen tekrar giriş yapınız')
+        print('Belirlenen Sürede İlan Sayfasına Ulaşılamadı lütfen tekrar giriş yapınız ERROR Code 292')
         
     try:
         element=WebDriverWait(driver, timeout).until(EC.visibility_of_element_located((By.XPATH,'//ul[@class="product-info-list"]')))
@@ -320,5 +379,6 @@ def deneme(url):
             bas=bas-59000000
         
     
-   
+maxTeklif=int(input('Lütfen Maksimum Tutarı Giriniz(Bu Tutar bazı durumlarda bir miktar aşılabilir): '))
+
 runCode()
