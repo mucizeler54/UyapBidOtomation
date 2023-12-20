@@ -19,7 +19,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 
-maxTeklif=21000
+maxTeklif=23300
 def wait_for_element(driver,by, value, timeout):
     try:
         return WebDriverWait(driver, timeout, ignored_exceptions=(StaleElementReferenceException,)).until(EC.presence_of_element_located((by, value)))
@@ -81,8 +81,7 @@ def confirm():
         print("ERROR ON confirm")
     
 def accept(second,myOffer,lastPrice):
-    #myOfferN=int(myOffer.text.split(',')[0].replace(".",""))
-    myOfferN=20000
+    myOfferN=int(myOffer.text.split(',')[0].replace(".",""))-100
     lastPriceN=int(lastPrice.text.split(',')[0].replace(".",""))
     boolean=int(second.text)<3 and int(second.text)>0 and myOfferN <lastPriceN
     now = datetime.datetime.now()
@@ -187,22 +186,21 @@ def runCode():
                     if not muhammelFlag:
                         muhammelBedeli()
                         muhammelFlag=True
-                        time.sleep(0.1)
                 #if int(myOffer.text.split(',')[0].replace(".",""))<int(lastPrice.text.split(',')[0].replace(".","")):
-                if int('20000'.replace(".",""))<int(lastPrice.text.split(',')[0].replace(".","")):#BURAYA DİKKAT LAST PRİCE KOYULCAK ŞİMDİLİK SAYI VAR
+                if int(myOffer.text.split(',')[0].replace(".",""))-100<int(lastPrice.text.split(',')[0].replace(".","")):#BURAYA DİKKAT LAST PRİCE KOYULCAK ŞİMDİLİK SAYI VAR
                     try:
-                        currentTeklif= driver.find_element(By.ID, 'teklifMiktari')
+                        
                         x=0
                         while x<2:
                             plusBtn.click()
                             x+=1
-                        """
-                        currentTeklif= driver.find_element(By.ID, 'teklifMiktari')
-                        if int(currentTeklif.text.split(',')[0].replace(".",""))<maxTeklif:
+                        
+                        currentTeklif= driver.find_element(By.XPATH, '//input[@id="teklifMiktari"]')
+                        if int(lastPrice.text.split(',')[0].replace(".",""))+((x+1)*int(plusBtn.text.split(',')[0].replace(".","").replace("+","")))<maxTeklif:
                             pass
                         else:
-                            currentTeklif.send_keys(maxTeklif)
-                         """   
+                            #currentTeklif.send_keys(maxTeklif)
+                            pass
                     except ElementClickInterceptedException:
                         print('plusa basmadı')
                         pass
